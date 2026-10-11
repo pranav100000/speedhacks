@@ -1,0 +1,18 @@
+[project]
+name = "speedhacks"
+version = "0.1.0"
+description = "Voice interviewer + per-user LoRA that writes posts in the founder's own voice"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=1.13.0",
+    "pydantic>=2.0",
+    "python-dotenv>=1.0",
+    "tinker>=0.33.1",
+    "tinker-cookbook>=0.5.7",
+    "pipecat-ai[deepgram,cartesia,openai,silero,webrtc,runner]>=1.12.0",
+    "streamlit>=1.40",
+    "trafilatura>=2.0",
+]
+
+[tool.uv]
+package = false

@@ -1,0 +1,79 @@
+From 1700000000000000000@xxx Mon Feb 10 15:12:03 2025
+X-GM-THRID: 1823000000000000001
+X-Gmail-Labels: Sent,Important,Category Personal
+Message-ID: <CAfixture0001@mail.gmail.com>
+Date: Mon, 10 Feb 2025 15:12:03 -0800
+From: Founder Person <founder@example.com>
+To: Jordan Lee <jordan@customer.example.com>
+Subject: Re: Why the onboarding flow changed
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+Hey Jordan,
+
+Fair question, and I owe you a straight answer. I changed the onboarding
+flow because I watched eleven session recordings and nine of those people
+never got past the import step. They were not confused by the product, they
+were confused by my explanation of it. So I cut the explanation.
+
+The new flow drops you straight into a sample workspace that already has
+data in it. You can break it, you can delete it, nothing is precious. From
+what I can tell so far, people get to their first real result in about four
+minutes instead of twenty.
+
+If this made things worse for your team specifically, tell me what you were
+doing before and I will put a switch in. I would rather ship a toggle than
+lose you over a redesign.
+
+Thanks for pushing on this. Most people just leave quietly.
+
+Founder
+
+On Mon, Feb 10, 2025 at 1:02 PM Jordan Lee <jordan@customer.example.com>
+wrote:
+> Hi, I noticed the onboarding changed and my new hires are confused.
+> What was the reason?
+
+--
+Founder Person
+Building a thing, mostly alone
+https://example.com
+
+From 1700000000000000001@xxx Tue Feb 11 09:40:17 2025
+X-GM-THRID: 1823000000000000002
+X-Gmail-Labels: Sent
+Message-ID: <CAfixture0002@mail.gmail.com>
+Date: Tue, 11 Feb 2025 09:40:17 -0800
+From: Founder Person <founder@example.com>
+To: Sam Park <sam@vendor.example.com>
+Subject: Re: Invoice #4471
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+Paid this morning, should land by Thursday. Thanks Sam.
+
+--
+Founder Person
+
+From 1700000000000000002@xxx Wed Feb 12 11:03:55 2025
+X-GM-THRID: 1823000000000000003
+X-Gmail-Labels: Inbox,Important
+Message-ID: <CAfixture0003@mail.gmail.com>
+Date: Wed, 12 Feb 2025 11:03:55 -0800
+From: Jordan Lee <jordan@customer.example.com>
+To: Founder Person <founder@example.com>
+Subject: Re: Why the onboarding flow changed
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+That makes sense, thank you for the detailed reply. The sample workspace is
+a good idea and the new hires figured it out this morning without me. I
+appreciate that you watched the recordings instead of guessing. We are
+staying on the plan, no toggle needed. One more thing, the export button is
+hard to find now, but that is a separate email.
+
+Jordan
+
