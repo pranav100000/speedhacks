@@ -17,7 +17,7 @@ from common.claude import complete
 from common.schema import CorpusRecord, read_jsonl
 from synth.util import created_at_key
 
-SELECTION_ORDER = ("blog", "linkedin_post", "thread", "tweet")
+SELECTION_ORDER = ("blog", "email", "linkedin_post", "thread", "tweet")
 
 SECTIONS = (
     "Sentence length and rhythm",

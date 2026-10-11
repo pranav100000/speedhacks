@@ -115,6 +115,7 @@ def parse_args() -> argparse.Namespace:
         help="Checkpoints + metrics dir. Default runs/tinker/<YYYYmmdd-HHMMSS>. Must not already exist.",
     )
     p.add_argument("--sampler-out", default="data/sampler.json", help="Where to write the sampler descriptor")
+    p.add_argument("--load-checkpoint", default=None, help="tinker:// state_path to warm-start from (default: base model)")
     p.add_argument(
         "--skip-schema-check",
         action="store_true",
@@ -164,6 +165,7 @@ def main() -> None:
         num_epochs=args.epochs,
         lora_rank=args.rank,
         eval_every=args.eval_every,
+        load_checkpoint_path=args.load_checkpoint,
     )
 
     cli_utils.check_log_dir(log_path, behavior_if_exists="raise")
@@ -190,6 +192,7 @@ def main() -> None:
         "epochs": args.epochs,
         "batch_size": args.batch_size,
         "lr": args.lr,
+        "warm_start_from": args.load_checkpoint,
         "max_length": args.max_length,
         "elapsed_seconds": round(elapsed, 1),
         "finished_at": datetime.now().isoformat(timespec="seconds"),

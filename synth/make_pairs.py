@@ -136,7 +136,7 @@ def validate(job: Job, out: PairOutput) -> PairRecord:
     for phrase in out.keep_phrases:
         if not phrase.strip():
             raise ValueError(f"{job.pair_id}: empty keep_phrase")
-        if phrase not in job.text:
+        if " ".join(phrase.split()) not in " ".join(job.text.split()):
             raise ValueError(f"{job.pair_id}: keep_phrase is not a substring of text: {phrase!r}")
     meta = [line for line in out.notes.splitlines() if META_WORDS.search(line)]
     if meta:
@@ -150,11 +150,25 @@ async def make_pairs(jobs: list[Job], concurrency: int) -> list[PairRecord]:
 
     async def one(job: Job) -> PairRecord:
         nonlocal done
+        prompt = user_prompt(job)
         try:
-            out = await parse(SYSTEM, user_prompt(job), PairOutput, effort="low", client=client)
+            out = await parse(SYSTEM, prompt, PairOutput, effort="low", client=client)
         except Exception as e:
             raise RuntimeError(f"{job.pair_id}: {e}") from e
-        pair = validate(job, out)
+        try:
+            pair = validate(job, out)
+        except ValueError as first_error:
+            # One corrective retry with the error shown; a second miss raises.
+            retry_prompt = (
+                f"{prompt}\n\nYour previous answer was rejected: {first_error}\n"
+                "keep_phrases must be exact substrings of the text above, copied character for character "
+                "(same punctuation, same quotes, same casing). Pick spans you can see verbatim in the text."
+            )
+            try:
+                out = await parse(SYSTEM, retry_prompt, PairOutput, effort="low", client=client)
+            except Exception as e:
+                raise RuntimeError(f"{job.pair_id}: retry failed: {e}") from e
+            pair = validate(job, out)
         done += 1
         if done % 25 == 0 or done == len(jobs):
             print(f"  {done}/{len(jobs)} done", flush=True)

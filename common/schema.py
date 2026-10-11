@@ -18,7 +18,7 @@ load_dotenv()
 Source = Literal["x", "linkedin", "gmail", "blog"]
 Format = Literal["tweet", "thread", "reply", "linkedin_post", "email", "blog", "section"]
 
-TRAINABLE_FORMATS: tuple[Format, ...] = ("blog", "section", "linkedin_post", "thread", "tweet", "reply")
+TRAINABLE_FORMATS: tuple[Format, ...] = ("blog", "section", "email", "linkedin_post", "thread", "tweet", "reply")
 
 SYSTEM_PROMPT_TEMPLATE = "You are {name}. Write in your own voice."
 
@@ -53,7 +53,7 @@ class PairRecord(BaseModel):
     id: str
     format: Format
     notes: str = Field(min_length=1)
-    keep_phrases: list[str] = Field(min_length=1, max_length=4)
+    keep_phrases: list[str] = Field(default_factory=list, max_length=4)
     text: str = Field(min_length=1)
 
 

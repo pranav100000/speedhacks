@@ -96,6 +96,7 @@ def to_train_record(p: PairRecord, rng: random.Random, max_phrases: int, phrase_
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--pairs", required=True, help="input data/pairs.jsonl")
+    ap.add_argument("--extra-pairs", default=None, help="synthetic pairs (ids synth_*) that have no corpus record; train only")
     ap.add_argument("--corpus", required=True, help="data/corpus.jsonl, joined on id for created_at")
     ap.add_argument("--train", required=True, help="output data/train.jsonl")
     ap.add_argument("--val", required=True, help="output data/val.jsonl")
@@ -115,6 +116,10 @@ def main() -> None:
         raise ValueError(f"--keep-in-train has non-trainable formats: {unknown}")
 
     pairs = read_jsonl(args.pairs, PairRecord)
+    extra = read_jsonl(args.extra_pairs, PairRecord) if args.extra_pairs else []
+    bad_extra = [p.id for p in extra if not p.id.startswith("synth_")]
+    if bad_extra:
+        raise ValueError(f"--extra-pairs ids must start with synth_, got {bad_extra[:3]}")
     corpus_by_id = {r.id: r for r in read_jsonl(args.corpus, CorpusRecord)}
     missing = [p.id for p in pairs if corpus_id_for(p.id) not in corpus_by_id]
     if missing:
@@ -125,8 +130,12 @@ def main() -> None:
 
     rng = random.Random(args.seed)
     pairs = cap_tweets(pairs, corpus_by_id, args.max_tweets)
+    if extra:
+        print(f"extra: {len(extra)} synthetic pairs added to train only")
+        keep_in_train.add("synthetic")
     pairs = cap_emails(pairs, args.max_emails)
     train_pairs, val_pairs = stratified_split(pairs, args.val_frac, rng, keep_in_train)
+    train_pairs = train_pairs + extra
     base_counts = {fmt: sum(1 for p in train_pairs if p.format == fmt) for fmt in repeat}
     train_pairs = [p for p in train_pairs for _ in range(repeat.get(p.format, 1))]
     for fmt, n in repeat.items():

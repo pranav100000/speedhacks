@@ -44,6 +44,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--max-tokens", type=int, default=1500)
     p.add_argument("--temperature", type=float, default=0.8)
     p.add_argument("--n", type=int, default=1, help="Samples to draw; the 2nd+ go to <out>.2.md, <out>.3.md, ...")
+    p.add_argument("--style-context", default=None, help="Optional text file (profile + example posts) appended to the system turn. Off by default: training never saw it.")
     return p.parse_args()
 
 
@@ -61,6 +62,12 @@ def main() -> None:
 
     # Same system + user turns as training; no assistant turn, the model writes that.
     messages = build_messages(outline.format, outline.notes, outline.keep_phrases)
+    if args.style_context:
+        context = Path(args.style_context).read_text().strip()
+        if not context:
+            raise ValueError(f"{args.style_context} is empty")
+        messages[0].content = f"{messages[0].content}\n\n{context}"
+        print(f"[sample] style context: {len(context.split())} words appended to the system turn", file=sys.stderr)
     renderer_messages = [RendererMessage(role=m.role, content=m.content) for m in messages]
 
     tokenizer = get_tokenizer(sampler["model"])
