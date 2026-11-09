@@ -13,8 +13,8 @@ from common.schema import Outline
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNS = ROOT / "runs"
-VARIANTS = ("vanilla", "fewshot", "finetune")
-LETTERS = ("A", "B", "C")
+VARIANTS = ("vanilla", "finetune")  # few-shot stays on disk and in the judge; the page shows the two-way contrast
+LETTERS = ("A", "B")
 
 
 def normalize_ws(text: str) -> str:
@@ -37,7 +37,7 @@ def load_judge(run: Path) -> dict[str, dict]:
 def runs_with_drafts() -> list[Path]:
     if not RUNS.is_dir():
         raise FileNotFoundError(f"{RUNS} does not exist")
-    return sorted(p for p in RUNS.iterdir() if p.is_dir() and any((p / "drafts").glob("*.md")))
+    return sorted((p for p in RUNS.iterdir() if p.is_dir() and not p.name.startswith("_") and any((p / "drafts").glob("*.md"))), key=lambda p: p.name, reverse=True)
 
 
 st.set_page_config(page_title="Which one is you?", layout="wide")
@@ -47,11 +47,11 @@ if not runs:
     st.error(f"No run under {RUNS} has a drafts/ folder with .md files. Run draft.generate first.")
     st.stop()
 run = st.sidebar.selectbox("Run", runs, format_func=lambda p: p.name)
-outline = Outline.model_validate_json((run / "outline.json").read_text())
-phrases = outline.keep_phrases
+outline = json.loads((run / "outline.json").read_text())
+phrases = outline["keep_phrases"]
 judged = load_judge(run)
 
-st.title(outline.title)
+st.title(outline["title"])
 
 order = list(VARIANTS)
 random.Random(run.name).shuffle(order)
@@ -79,7 +79,7 @@ for col, letter, name in zip(st.columns(3), LETTERS, order):
 
 with st.expander("Outline: notes and keep phrases", expanded=False):
     st.markdown("**Notes**")
-    st.markdown(outline.notes)
+    st.markdown(outline["notes"])
     st.markdown("**Keep phrases**")
     st.markdown("\n".join(f"- {p}" for p in phrases))
     for name in order:

@@ -120,6 +120,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run", required=True, help="runs/<id> directory containing transcript.json")
     ap.add_argument("--effort", default="medium", help="Claude effort level (default: medium)")
+    ap.add_argument("--no-clean", action="store_true", help="skip the transcription cleanup pass (faster; use for live demos)")
     args = ap.parse_args()
 
     run_dir = Path(args.run)
@@ -128,8 +129,11 @@ def main() -> None:
     if not any(t.role == "user" for t in transcript.turns):
         raise ValueError(f"{transcript_path} has no user turns; nothing to outline")
 
-    cleaned = asyncio.run(clean_transcript(transcript, args.effort))
-    write_json(run_dir / "transcript_clean.json", cleaned)
+    if args.no_clean:
+        cleaned = transcript
+    else:
+        cleaned = asyncio.run(clean_transcript(transcript, args.effort))
+        write_json(run_dir / "transcript_clean.json", cleaned)
     outline = asyncio.run(make_outline(cleaned, args.effort))
     out = run_dir / "outline.json"
     write_json(out, outline)

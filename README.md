@@ -9,8 +9,10 @@ Design notes and the build plan are in `SCOPE.md`.
 Keys live in `.env` (see `.env.example`). Everything runs from the repo root with `uv run`.
 
 ```bash
-# 1. interviewer (http://localhost:7860/client), hang up when it says it has enough
-uv run python -m interview.bot --corpus data/corpus.jsonl
+# 1. interviewer, three ways
+uv run python -m interview.dial_inbound --corpus data/corpus.jsonl      # the number answers; call it, hang up, the post arrives as a text
+uv run python -m interview.dial_call --to +1XXXXXXXXXX --corpus data/corpus.jsonl   # it calls you
+uv run python -m interview.bot --corpus data/corpus.jsonl               # browser version at http://localhost:7860/client
 
 # 2. notes + three drafts for the run it just wrote
 #    outline: fixes speech-to-text errors (diff-guarded), picks 0-2 quotable lines (opinions, jokes, verdicts)
@@ -58,6 +60,7 @@ has its own README with flags and caveats.
 | Four recent substantive emails added (screened for privacy and substance; 700 of 711 sent emails were logistics, private, or school essays) | 9B pairwise wins 2 -> 6 on the same outline |
 | Qwen3.5-35B-A3B-Base instead of 9B, same data | fine-tune voice 6 -> 7, first time it matched few-shot; samples about as fast |
 | Soft echoed lines (0-2, opinions only) instead of 3-5 verbatim phrases | drafts stopped reading as stitched transcript; pairwise wins for soft 8 of 8 vs hard 3 once the judge was told not to reward spoken phrasing |
+| Nine more private-but-own-words emails (job pitches, billing disputes), 2k words | worse: voice 6 -> 5, invented claims 0 -> 3, pairwise 0; the polite email register pulled the model toward one long formal paragraph. Reverted. |
 | 45 synthetic posts distilled from the few-shot writer (synth/distill.py), grounded in real records, claims-filtered | no measurable change on the judge (voice 6, 0 claims, same pairwise); kept as an experiment, not the demo model |
 
 ## How it fits together

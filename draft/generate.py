@@ -122,20 +122,20 @@ async def pick_best(
     return best[3], best[4]
 
 
-def sample_finetune(run_dir: Path, cand_dir: Path, sampler: str) -> list[tuple[str, str]]:
+def sample_finetune(run_dir: Path, cand_dir: Path, sampler: str, n: int = FINETUNE_CANDIDATES) -> list[tuple[str, str]]:
     first = cand_dir / "finetune.md"
     subprocess.run(
         [
             "uv", "run", "python", "-m", "train.sample",
             "--outline", str(run_dir / "outline.json"),
             "--out", str(first),
-            "--n", str(FINETUNE_CANDIDATES),
+            "--n", str(n),
             "--sampler", sampler,
             "--temperature", FINETUNE_TEMPERATURE,
         ],
         check=True,
     )
-    paths = [first] + [cand_dir / f"finetune.{i}.md" for i in range(2, FINETUNE_CANDIDATES + 1)]
+    paths = [first] + [cand_dir / f"finetune.{i}.md" for i in range(2, n + 1)]
     out: list[tuple[str, str]] = []
     for path in paths:
         if not path.exists():
@@ -147,18 +147,18 @@ def sample_finetune(run_dir: Path, cand_dir: Path, sampler: str) -> list[tuple[s
     return out
 
 
-async def draft_finetune(run_dir: Path, out: Path, outline: Outline, sampler: str, words: str | None) -> str:
-    """Sample FINETUNE_CANDIDATES drafts, keep the one with the fewest unsupported claims."""
+async def draft_finetune(run_dir: Path, out: Path, outline: Outline, sampler: str, words: str | None, n: int) -> str:
+    """Sample n drafts, keep the one with the fewest unsupported claims."""
     cand_dir = out.parent / "finetune_candidates"
     cand_dir.mkdir(parents=True, exist_ok=True)
-    candidates = await asyncio.to_thread(sample_finetune, run_dir, cand_dir, sampler)
+    candidates = await asyncio.to_thread(sample_finetune, run_dir, cand_dir, sampler, n)
     _, text = await pick_best(candidates, outline, words)
     write_text(out, text)
     return text
 
 
 async def run_variant(
-    name: str, outline: Outline, run_dir: Path, profile: str, examples: list[CorpusRecord], effort: str, sampler: str
+    name: str, outline: Outline, run_dir: Path, profile: str, examples: list[CorpusRecord], effort: str, sampler: str, candidates: int
 ) -> str:
     out = run_dir / "drafts" / f"{name}.md"
     if name == "vanilla":
@@ -168,7 +168,7 @@ async def run_variant(
         text = await draft_fewshot(outline, profile, examples, effort, speaker_words(run_dir), out.parent / "fewshot_candidates")
         write_text(out, text)
     elif name == "finetune":
-        text = await draft_finetune(run_dir, out, outline, sampler, speaker_words(run_dir))
+        text = await draft_finetune(run_dir, out, outline, sampler, speaker_words(run_dir), candidates)
     else:
         raise ValueError(f"unknown variant {name!r}")
     print(f"{out}: keep phrases survived {survived(text, outline.keep_phrases)}/{len(outline.keep_phrases)}")
@@ -176,9 +176,9 @@ async def run_variant(
 
 
 async def run_all(
-    variants: tuple[str, ...], outline: Outline, run_dir: Path, profile: str, examples: list[CorpusRecord], effort: str, sampler: str
+    variants: tuple[str, ...], outline: Outline, run_dir: Path, profile: str, examples: list[CorpusRecord], effort: str, sampler: str, candidates: int
 ) -> None:
-    await asyncio.gather(*(run_variant(v, outline, run_dir, profile, examples, effort, sampler) for v in variants))
+    await asyncio.gather(*(run_variant(v, outline, run_dir, profile, examples, effort, sampler, candidates) for v in variants))
 
 
 def main() -> None:
@@ -192,6 +192,7 @@ def main() -> None:
     )
     ap.add_argument("--effort", default="medium", help="Claude effort level (default: medium)")
     ap.add_argument("--sampler", default="data/sampler.json", help="sampler descriptor for the finetune column (default: data/sampler.json)")
+    ap.add_argument("--candidates", type=int, default=FINETUNE_CANDIDATES, help=f"fine-tune samples to choose among (default {FINETUNE_CANDIDATES}; 2 for speed)")
     args = ap.parse_args()
 
     variants = tuple(dict.fromkeys(args.only)) if args.only else VARIANTS
@@ -206,7 +207,7 @@ def main() -> None:
     by_format = Counter(r.format for r in examples)
     print(f"{len(examples)} few-shot examples: " + ", ".join(f"{k}={v}" for k, v in by_format.items()))
 
-    asyncio.run(run_all(variants, outline, run_dir, profile, examples, args.effort, args.sampler))
+    asyncio.run(run_all(variants, outline, run_dir, profile, examples, args.effort, args.sampler, args.candidates))
 
 
 if __name__ == "__main__":
